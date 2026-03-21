@@ -1,12 +1,12 @@
 # Contiki RPL Lab for Industrial IoT Course
 
-Hands-on repository to **teach and demonstrate RPL** with Contiki-NG and Renode.
+Hands-on repository to demonstrate and analyze RPL with Contiki-NG and Renode.
 
-This project is designed for classroom usage:
-- short theory recap (what RPL is and why we use it),
-- step-by-step lab instructions,
+This repository includes:
+- concise protocol theory,
+- step-by-step execution instructions,
 - reproducible experiments,
-- scripts to automate runs and explain results to students.
+- automation scripts and log parsing utilities.
 
 ---
 
@@ -16,7 +16,7 @@ This project is designed for classroom usage:
 
 ```mermaid
 flowchart LR
-    A[Student / Instructor] --> B[Python Scripts]
+    A[User] --> B[Python Scripts]
     B --> C[Renode]
     C --> D[Virtual Node: Root Server]
     C --> E[Virtual Node: Client-1]
@@ -25,7 +25,7 @@ flowchart LR
     D <-- IEEE 802.15.4 --> F
     B --> G[Logs]
     G --> H[Parser]
-    H --> I[PDR / MissRate + Teaching Story]
+    H --> I[PDR / MissRate + Run Summary]
 ```
 
 ### B) RPL behavior in this lab
@@ -48,7 +48,7 @@ sequenceDiagram
     R-->>C2: UDP response (echo)
 ```
 
-### C) Teaching workflow
+### C) Workflow overview
 
 ```mermaid
 flowchart TD
@@ -63,7 +63,7 @@ flowchart TD
 
 ## 1) Learning goals
 
-After this lab, students should be able to:
+After this lab, users should be able to:
 - explain what problem RPL solves in Low-power and Lossy Networks (LLNs),
 - describe RPL roles (root, parents, leaf nodes) and DODAG formation,
 - run a multi-node RPL scenario in Renode,
@@ -72,9 +72,7 @@ After this lab, students should be able to:
 
 ---
 
-## 1.1 Super-simple explanation (for beginners)
-
-If students are new to routing, explain RPL like this:
+## 1.1 Super-simple explanation
 
 - Imagine many tiny IoT devices trying to send data to one central device.
 - Not all devices can reach the center directly.
@@ -100,8 +98,7 @@ Traditional routing protocols are often too heavy for IoT devices:
 
 RPL is designed specifically for these constraints.
 
-What to tell students in class:
-- "RPL is routing made for tiny, battery-powered devices and imperfect wireless links."
+RPL is routing made for tiny, battery-powered devices and imperfect wireless links.
 
 ### 2.2 Core concepts
 
@@ -111,10 +108,10 @@ What to tell students in class:
 - **Parent**: next-hop selected by each node according to an objective function.
 - **Rank**: a logical distance from the root used to avoid loops.
 
-Quick classroom analogy:
-- Root = "teacher desk"
-- Parents = "students who pass notes forward"
-- Rank = "how many rows away from the desk"
+Quick analogy:
+- Root = destination hub
+- Parents = forwarding helpers
+- Rank = distance level from the root
 
 Mermaid view of a simple DODAG:
 
@@ -140,9 +137,9 @@ graph TD
 - **DIO**: advertises DODAG information.
 - **DAO**: advertises downward reachability (used depending on mode).
 
-For this lab, students do not need packet-level bit fields; behavior-level understanding is enough.
+For this lab, packet-level bit fields are not required; behavior-level understanding is sufficient.
 
-### 2.4 What students observe in this lab
+### 2.4 Observable behavior in this lab
 
 In `rpl-udp`, clients initially print:
 - `Not reachable yet`
@@ -156,7 +153,7 @@ This transition is the visible effect of DODAG setup and route usability.
 
 ---
 
-## 2.5 Tiny glossary (student-friendly)
+## 2.5 Tiny glossary
 
 - **Convergence**: the period where routes are still forming.
 - **Reachable**: node has a usable route to the root.
@@ -186,7 +183,7 @@ This transition is the visible effect of DODAG setup and route usability.
   One-command Docker demo (no local Renode install needed).
 
 - `rpl_story_demo.py`  
-  Presentation mode: converts log events into a 4-step protocol narrative.
+  Converts log events into a 4-step protocol narrative.
 
 - `lab - RPL.pdf` / `lab - RPL.pptx`  
   Slide material.
@@ -207,27 +204,13 @@ Optional but recommended:
 
 ---
 
-## 5) Teaching flow (suggested 90-minute class)
+## 5) Suggested execution flow
 
-### Part A - Theory intro (15-20 min)
-- Explain LLN constraints and why classic routing is not ideal.
-- Introduce DODAG, root, parent, rank.
-- Explain what students should see in logs during convergence.
-
-### Part B - Live demo (15 min)
-- Run `python3 rpl_story_demo.py --run`.
-- Show the 4 protocol phases from real execution logs.
-
-### Part C - Hands-on baseline (20 min)
-- Students run baseline scenario and parse metrics.
-
-### Part D - Parameter experiment (25 min)
-- Students run range experiment (`5,8,11,14`) and compare metrics.
-
-### Part E - Discussion (10 min)
-- Which range values break reliability?
-- Why does “not reachable yet” appear?
-- How does this map to RPL convergence?
+1. Review RPL core concepts (LLN, DODAG, rank).
+2. Run the container demo and inspect logs.
+3. Run baseline experiment and parse metrics.
+4. Run range experiment and compare outputs.
+5. Summarize reliability trends and convergence behavior.
 
 ---
 
@@ -263,7 +246,7 @@ python3 parse_rpl_udp_logs.py --combined /absolute/path/to/this-repo/rpl_lab_run
 Expected behavior:
 - parser prints per-client counters and average metrics.
 
-### Step 4 - Explain results to students
+### Step 4 - Interpret results
 
 Map logs to protocol phases:
 1. `Not reachable yet` -> network not converged yet.
@@ -299,7 +282,7 @@ python3 rpl_story_demo.py --log demo-runs/container-demo.log
 
 ---
 
-## 8) Main experiment for students: range sensitivity
+## 8) Main experiment: range sensitivity
 
 ### Run experiment
 
@@ -320,7 +303,7 @@ python3 parse_rpl_udp_logs.py --combined /absolute/path/to/this-repo/rpl_lab_run
 python3 parse_rpl_udp_logs.py --combined /absolute/path/to/this-repo/rpl_lab_runs/range14.log
 ```
 
-### What students should report
+### Suggested report output
 
 Use a table with:
 - `Range`
@@ -331,14 +314,14 @@ Use a table with:
 Expected trend:
 - lower range -> harder connectivity -> higher misses / lower effective reliability.
 
-Simple interpretation script for class:
+Simple interpretation:
 - "Short range means fewer reliable neighbors."
 - "Fewer reliable neighbors means slower/less stable route formation."
 - "That usually increases misses and can reduce delivery reliability."
 
 ---
 
-## 9) Metrics explained (for lecture)
+## 9) Metrics explained
 
 - `Tx`: number of requests sent by clients.
 - `Rx`: number of responses received by clients.
@@ -346,7 +329,7 @@ Simple interpretation script for class:
 - `PDR = Rx / Tx`: delivery success ratio.
 - `MissRate = MissedTx / Tx`: reachability instability proxy.
 
-Important teaching note:
+Important note:
 - In short runs, `Tx/Rx/MissedTx` snapshots may be sparse.
 - The parser fallback computes approximate counters from event lines.
 
@@ -368,9 +351,7 @@ flowchart LR
 
 ---
 
-## 10) Presentation command (one-liner)
-
-If you need one command in class:
+## 10) One-command demo
 
 ```bash
 python3 rpl_story_demo.py --run
@@ -380,13 +361,6 @@ This gives:
 - reproducible run,
 - parsed metrics,
 - plain-language RPL narrative you can read live.
-
-Live teaching tip:
-- run once,
-- pause on each of the 4 phases,
-- ask students: "Which phase means routing is ready?"
-
----
 
 ## 11) Troubleshooting
 
@@ -404,22 +378,20 @@ Live teaching tip:
 
 ---
 
-## 12) Reproducibility checklist (for grading)
+## 12) Reproducibility checklist
 
-For each student/group run, save:
+For each run, save:
 - repository commit hash (`git rev-parse HEAD`),
 - Renode version (`renode -v` or container image tag),
 - run mode (`baseline` / `range`),
 - parameter values (`ranges`, `run-seconds`),
 - parsed output and final table.
 
-This ensures comparable and reproducible results across student machines.
+This ensures comparable and reproducible results across environments.
 
 ---
 
-## 13) Step-by-step checklist for students
-
-Use this as a handout:
+## 13) Step-by-step checklist
 
 1. Open terminal in repo root.
 2. Run baseline command (Section 6, Step 2).
