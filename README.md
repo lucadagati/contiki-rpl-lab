@@ -30,8 +30,8 @@ You need these tools installed on your machine:
 - Contiki-NG toolchain able to build `TARGET=cc2538dk`
 
 Important:
-- This repo does **not** contain the full Contiki-NG source tree.
-- You must have a local clone of `contiki-ng`.
+- This repo **includes** the `contiki-ng/` source tree (vendored).
+- After cloning this repo, you already have `contiki-ng/examples/rpl-udp`.
 
 ---
 
@@ -70,16 +70,10 @@ Important:
 
 ## 4) Quick start (end-to-end)
 
-### Step A - Prepare Contiki-NG
+### Step A - Verify bundled Contiki-NG
 
-```bash
-git clone https://github.com/contiki-ng/contiki-ng.git
-cd contiki-ng
-git submodule update --init --recursive
-```
-
-Make sure this path exists:
-- `.../contiki-ng/examples/rpl-udp`
+Make sure this path exists in this repo:
+- `./contiki-ng/examples/rpl-udp`
 
 ### Step B - Baseline run
 
@@ -87,7 +81,7 @@ From this repository folder:
 
 ```bash
 python3 run_rpl_lab_interactive.py \
-  --contiki-path /absolute/path/to/contiki-ng \
+  --contiki-path /absolute/path/to/this-repo/contiki-ng \
   --mode baseline \
   --run-seconds 90
 ```
@@ -137,7 +131,7 @@ Run multiple range values:
 
 ```bash
 python3 run_rpl_lab_interactive.py \
-  --contiki-path /absolute/path/to/contiki-ng \
+  --contiki-path /absolute/path/to/this-repo/contiki-ng \
   --mode range \
   --ranges 5,8,11,14 \
   --run-seconds 90
@@ -184,7 +178,7 @@ To test workflow and script generation without launching Renode:
 
 ```bash
 python3 run_rpl_lab_interactive.py \
-  --contiki-path /absolute/path/to/contiki-ng \
+  --contiki-path /absolute/path/to/this-repo/contiki-ng \
   --mode range \
   --ranges 5,11 \
   --dry-run
