@@ -72,6 +72,22 @@ After this lab, students should be able to:
 
 ---
 
+## 1.1 Super-simple explanation (for beginners)
+
+If students are new to routing, explain RPL like this:
+
+- Imagine many tiny IoT devices trying to send data to one central device.
+- Not all devices can reach the center directly.
+- So each device chooses a "next helper node" (a parent) to move data upward.
+- Over time, a tree-like structure appears (the DODAG), with the root at the top.
+- At first, devices may say "Not reachable yet".
+- After convergence, packets start flowing and responses come back.
+
+In one sentence:
+- **RPL helps constrained IoT devices find stable upward paths to a root over weak wireless links.**
+
+---
+
 ## 2) RPL theory (simple explanation)
 
 ### 2.1 Why RPL exists
@@ -84,6 +100,9 @@ Traditional routing protocols are often too heavy for IoT devices:
 
 RPL is designed specifically for these constraints.
 
+What to tell students in class:
+- "RPL is routing made for tiny, battery-powered devices and imperfect wireless links."
+
 ### 2.2 Core concepts
 
 - **LLN (Low-power and Lossy Network)**: constrained nodes + unreliable links.
@@ -91,6 +110,11 @@ RPL is designed specifically for these constraints.
 - **Root**: central reference node (in this lab, the UDP server).
 - **Parent**: next-hop selected by each node according to an objective function.
 - **Rank**: a logical distance from the root used to avoid loops.
+
+Quick classroom analogy:
+- Root = "teacher desk"
+- Parents = "students who pass notes forward"
+- Rank = "how many rows away from the desk"
 
 Mermaid view of a simple DODAG:
 
@@ -129,6 +153,16 @@ Then, after convergence:
 - clients print `Received response ...`
 
 This transition is the visible effect of DODAG setup and route usability.
+
+---
+
+## 2.5 Tiny glossary (student-friendly)
+
+- **Convergence**: the period where routes are still forming.
+- **Reachable**: node has a usable route to the root.
+- **Unreachable**: no working route yet.
+- **PDR**: fraction of packets that successfully complete end-to-end.
+- **Topology**: who can directly talk to whom in the wireless network.
 
 ---
 
@@ -215,11 +249,19 @@ python3 run_rpl_lab_interactive.py \
   --run-seconds 90
 ```
 
+Expected behavior:
+- script generates a Renode `.resc` scenario,
+- Renode starts and runs virtual nodes,
+- log file appears under `rpl_lab_runs/`.
+
 ### Step 3 - Parse baseline log
 
 ```bash
 python3 parse_rpl_udp_logs.py --combined /absolute/path/to/this-repo/rpl_lab_runs/baseline_range11.log
 ```
+
+Expected behavior:
+- parser prints per-client counters and average metrics.
 
 ### Step 4 - Explain results to students
 
@@ -228,6 +270,10 @@ Map logs to protocol phases:
 2. `Sending request` -> route available to root.
 3. `Received request` on server -> forwarding works.
 4. `Received response` on client -> end-to-end path is functional.
+
+Quick interpretation:
+- if requests are sent but no responses come back, routing path is incomplete or unstable;
+- if responses consistently arrive, the DODAG path is operational.
 
 ---
 
@@ -285,6 +331,11 @@ Use a table with:
 Expected trend:
 - lower range -> harder connectivity -> higher misses / lower effective reliability.
 
+Simple interpretation script for class:
+- "Short range means fewer reliable neighbors."
+- "Fewer reliable neighbors means slower/less stable route formation."
+- "That usually increases misses and can reduce delivery reliability."
+
 ---
 
 ## 9) Metrics explained (for lecture)
@@ -330,6 +381,11 @@ This gives:
 - parsed metrics,
 - plain-language RPL narrative you can read live.
 
+Live teaching tip:
+- run once,
+- pause on each of the 4 phases,
+- ask students: "Which phase means routing is ready?"
+
 ---
 
 ## 11) Troubleshooting
@@ -358,4 +414,22 @@ For each student/group run, save:
 - parsed output and final table.
 
 This ensures comparable and reproducible results across student machines.
+
+---
+
+## 13) Step-by-step checklist for students
+
+Use this as a handout:
+
+1. Open terminal in repo root.
+2. Run baseline command (Section 6, Step 2).
+3. Confirm log file is created in `rpl_lab_runs/`.
+4. Parse the log (Section 6, Step 3).
+5. Write down `AvgPDR` and `AvgMissRate`.
+6. Run range experiment (Section 8).
+7. Parse each range log and fill the report table.
+8. Write 3 short conclusions:
+   - what changed when range decreased,
+   - what logs indicate convergence,
+   - whether end-to-end communication was stable.
 
