@@ -182,7 +182,7 @@ def main() -> None:
     parser.add_argument("--out-dir", default="rpl_lab_runs", help="Where to store logs and generated scripts (default: rpl_lab_runs).")
     parser.add_argument("--mode", choices=["baseline", "range"], default="baseline", help="Lab mode (default: baseline).")
     parser.add_argument("--ranges", default="5,8,11,14", help="Comma-separated range list for --mode range.")
-    parser.add_argument("--nclients", default="2,3,4", help="Comma-separated N list for future extensions.")
+    parser.add_argument("--nclients", default="2,3,4", help="Reserved for future extensions (currently unused; see generate_nclients_resc).")
     parser.add_argument("--run-seconds", type=int, default=90, help="Auto-stop each run after N seconds (default: 90). Use 0 to wait for Enter.")
     parser.add_argument("--dry-run", action="store_true", help="Generate scripts only; do not run make/renode.")
     args = parser.parse_args()
@@ -222,8 +222,9 @@ def main() -> None:
                 run_log_path=log_path,
                 run_seconds=run_seconds,
             )
-        print("Run finished. To summarize logs:")
-        print(f"  python3 parse_rpl_udp_logs.py --combined '{log_path}'")
+        if not args.dry_run:
+            print("Run finished. To summarize logs:")
+            print(f"  python3 parse_rpl_udp_logs.py --combined '{log_path}'")
         return
 
     if args.mode == "range":
@@ -244,8 +245,9 @@ def main() -> None:
                     run_log_path=log_path,
                     run_seconds=run_seconds,
                 )
-            print(f"Parsed summary for range={r}:")
-            print(f"  python3 parse_rpl_udp_logs.py --combined '{log_path}'")
+            if not args.dry_run:
+                print(f"To summarize range={r}:")
+                print(f"  python3 parse_rpl_udp_logs.py --combined '{log_path}'")
         return
 
     raise SystemExit(f"Unsupported mode: {args.mode}")

@@ -6,10 +6,10 @@ Expected log line pattern (from examples/rpl-udp/udp-client.c):
   Tx/Rx/MissedTx: <tx>/<rx>/<missed>
 
 Usage:
-  1) Per-node logs (cartella con client-1.log, client-2.log, ...):
+  1) Per-node logs (directory with client-1.log, client-2.log, ...):
      python3 parse_rpl_udp_logs.py /path/to/logs/
 
-  2) Log combinato (un singolo file con tutte le righe, senza separare per nodo):
+  2) Combined log (a single file with all lines, not split per node):
      python3 parse_rpl_udp_logs.py --combined /path/to/run.log
 
 Where `logs/` contains files like:

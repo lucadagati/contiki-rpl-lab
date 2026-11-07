@@ -185,7 +185,7 @@ This transition is the visible effect of DODAG setup and route usability.
 - `rpl_story_demo.py`  
   Converts log events into a 4-step protocol narrative.
 
-- `lab - RPL.pdf` / `lab - RPL.pptx`  
+- `lab - RPL.pdf`  
   Slide material.
 
 ---
@@ -198,6 +198,16 @@ Install:
 - **One of**:
   - local Renode installation, or
   - Docker (for containerized demo)
+
+Exact requirements by path:
+
+| Path | Needs |
+|------|-------|
+| Log parsing (`parse_rpl_udp_logs.py`, `rpl_story_demo.py`) | Python 3.9+ (standard library only; tested with 3.10) |
+| Container demo | Docker with network access (pulls `antmicro/renode:latest` and downloads two prebuilt ELF files from `dl.antmicro.com`) |
+| Local experiments (`run_rpl_lab_interactive.py`) | Renode in `PATH`, GNU `make`, an ARM bare-metal GCC (`arm-none-eabi-gcc`) to build `udp-server`/`udp-client` for `cc2538dk`; see `contiki-ng/doc/getting-started/Toolchain-installation-on-Linux.md` |
+
+The vendored Contiki-NG tree is the upstream commit `f94c922c145a7d72ea3c6ec5a2c4314fad50118b`. Its git submodules (Cooja, CMSIS, vendor SDKs) are **not** populated in this repository; the lab only needs `examples/rpl-udp` and the `cc2538dk` platform.
 
 Optional but recommended:
 - Wireshark (if you want traffic-level inspection in supported setups).
@@ -362,6 +372,57 @@ This gives:
 - parsed metrics,
 - plain-language RPL narrative you can read live.
 
+## 10.1) Configuration reference
+
+`run_rpl_lab_interactive.py`:
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `--contiki-path` | prompted | Path to `contiki-ng/` (must contain `examples/rpl-udp`) |
+| `--target` | `cc2538dk` | Contiki target passed to `make renode` |
+| `--out-dir` | `rpl_lab_runs` | Where logs are written (git-ignored) |
+| `--mode` | `baseline` | `baseline` (range 11) or `range` (one run per value of `--ranges`) |
+| `--ranges` | `5,8,11,14` | Radio ranges for `--mode range` (nodes sit 10 units from the server) |
+| `--run-seconds` | `90` | Auto-stop after N seconds; `0` waits for Enter |
+| `--dry-run` | off | Only generate the `.resc` files, do not run Renode |
+| `--nclients` | `2,3,4` | Reserved, currently unused |
+
+The generated scenarios (`rpl-udp-lab-*.resc`) are written inside `contiki-ng/examples/rpl-udp/` and are git-ignored.
+
+Parser output columns: `Node  Tx  Rx  Missed  PDR  MissRate`. With `Tx/Rx/MissedTx` snapshots the combined mode prints the average over all snapshots plus the last one (all nodes mixed); the fallback mode prints per-client counts.
+
+Example (synthetic log used to test the parser, not a Renode run):
+
+```text
+Combined run summary
+Snapshots found: 1
+AvgPDR: 0.7500
+AvgMissRate: 0.2500
+LastSnapshot -> Tx=4, Rx=3, Missed=1, PDR=0.7500, MissRate=0.2500
+```
+
+## 10.2) Verification status
+
+| Item | Status |
+|------|--------|
+| `py_compile` on all Python scripts, `bash -n` on the demo script | verified |
+| `--dry-run` scenario generation (in a temporary directory) | verified |
+| Log parser and story demo on synthetic logs | verified |
+| Renode simulation, Contiki-NG build for `cc2538dk`, Docker demo with Antmicro binaries | not verified in this environment |
+
+## 10.3) Limitations and security
+
+- The container demo runs unpinned `antmicro/renode:latest` and downloads prebuilt firmware over HTTPS without checksum verification: use it only for teaching, and pin the image tag/digest for reproducible research.
+- Only 2 clients are generated (`--nclients` is a placeholder); results from short runs are noisy.
+- `PDR` in fallback mode is an estimate from log lines, not from firmware counters.
+- No secrets are used or stored in this repository.
+
+## 10.4) Extending the lab
+
+- Add clients: use `generate_nclients_resc()` in `run_rpl_lab_interactive.py` (1-4 clients) and call it from a new mode.
+- Change RPL parameters: edit `contiki-ng/examples/rpl-udp/project-conf.h` (create it if missing) and rebuild.
+- Add metrics: extend the regular expressions at the top of `parse_rpl_udp_logs.py`.
+
 ## 11) Troubleshooting
 
 - `renode: command not found`  
@@ -372,6 +433,9 @@ This gives:
 
 - No `Tx/Rx/MissedTx` lines found  
   Increase run duration (`--run-seconds 120`) and use combined-log fallback parser.
+
+- `arm-none-eabi-gcc: not found` during `make renode`  
+  Install the ARM toolchain (see Prerequisites).
 
 - Docker mount issues on macOS  
   Demo script already uses `/tmp` workaround for `.resc` mounting.
